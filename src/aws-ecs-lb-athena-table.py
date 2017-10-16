@@ -38,17 +38,43 @@ def check_elb_logging_status(load_balancer, load_balancer_type, boto_session):
     return logging_enabled
 
 
+# Enable access logging on an ALB/ELB
+# For an ALB, load_balancer is an ARN; it's a name for an ELB
 def enable_elb_access_logging(load_balancer, load_balancer_type, bucket, bucket_prefix, boto_session):
-    print("enable_elb_access_logging")
     status = False
 
+    print("enabling access logs for " + load_balancer + " writing to bucket " + bucket + " prefix " + bucket_prefix)
+
     if load_balancer_type == 'ALB':
-        print("Enabling logging for ALB")
+        elb_client = boto_session.client('elbv2')
+
+        try:
+            response = elb_client.modify_load_balancer_attributes(
+                LoadBalancerArn=load_balancer,
+                Attributes=[
+                    {
+                        'Key': 'access_logs.s3.enabled',
+                        'Value': 'true'
+                    },
+                    {
+                        'Key': 'access_logs.s3.bucket',
+                        'Value': bucket
+                    },
+                    {
+                        'Key': 'access_logs.s3.prefix',
+                        'Value': bucket_prefix
+                    }
+                ]
+            )
+
+            # We don't care about the response and it will except if there's any issue
+            status = True
+        except Exception as e:
+            print("Error setting attributes for ALB " + load_balancer + " (" + str(e) + ")")
+            status = False
     elif load_balancer_type == 'ELB':
-        print("Enabling logging for ELB")
         elb_client = boto_session.client('elb')
 
-        print("enabling logging for " + load_balancer + " writing to bucket " + bucket + " prefix " + bucket_prefix)
         try:
             response = elb_client.modify_load_balancer_attributes(
                 LoadBalancerAttributes={
