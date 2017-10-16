@@ -1,5 +1,4 @@
 import argparse
-import pprint
 import boto3
 import sys
 
@@ -39,32 +38,42 @@ def check_elb_logging_status(load_balancer, load_balancer_type, boto_session):
     return logging_enabled
 
 
-def enable_elb_access_logging(load_balancer, load_balancer_type, bucket, bucket_prefix):
+def enable_elb_access_logging(load_balancer, load_balancer_type, bucket, bucket_prefix, boto_session):
     print("enable_elb_access_logging")
     status = False
 
     if load_balancer_type == 'ALB':
-        print("Enabling loggin for ALB")
+        print("Enabling logging for ALB")
     elif load_balancer_type == 'ELB':
-        print("Enabling loggin for ELB")
+        print("Enabling logging for ELB")
         elb_client = boto_session.client('elb')
 
+        print("enabling logging for " + load_balancer + " writing to bucket " + bucket + " prefix " + bucket_prefix)
         try:
             response = elb_client.modify_load_balancer_attributes(
                 LoadBalancerAttributes={
                     'AccessLog': {
                         'Enabled': True,
-                        'S3BucketName': "",
+                        'S3BucketName': bucket,
                         'EmitInterval': 5,
-                        'S3BucketPrefix': ""
+                        'S3BucketPrefix': bucket_prefix
                     },
                 },
                 LoadBalancerName=load_balancer,
             )
+
+            if response:
+                if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                    status = True
         except Exception as e:
             print("Error setting attributes for ELB " + load_balancer + " (" + str(e) + ")")
+            status = False
 
     return status
+
+
+def create_athena_table(force, bucket, service_name, session):
+    print "create athena table"
 
 
 def lookup_alb_arn(target_group_arn, boto_session):
@@ -123,6 +132,7 @@ def main(argv):
             for service in services_desc['services']:
                 service_name = service['serviceName'].rsplit('-', 1)[0]
                 load_balancer_type = None
+                need_to_create_athena_table = False
 
                 if 'loadBalancers' in service:
                     if len(service['loadBalancers']) > 0:
@@ -145,18 +155,26 @@ def main(argv):
 
                         if load_balancer:
                             # Check and see if logging is enabled.  If not, enable it
+                            state = False
                             if not check_elb_logging_status(load_balancer, load_balancer_type, session):
                                 print("Access logging is NOT enabled on " + load_balancer)
                                 state = enable_elb_access_logging(
                                     load_balancer,
                                     load_balancer_type,
                                     args.bucket,
-                                    service_name)
-                            else:
-                                print("Access logging is enabled on " + load_balancer)
+                                    service_name,
+                                    session)
 
-                            if state:
-                                print("enabled access logging on ELB")
+                                if state:
+                                    print("Successfully enabled access logging on " + load_balancer)
+                                    need_to_create_athena_table = True
+                                else:
+                                    print("ERROR enabling access logging on " + load_balancer)
+                            else:
+                                print("Access logging is already enabled on " + load_balancer)
+
+                            if need_to_create_athena_table or args.force:
+                                create_athena_table(args.force, args.bucket, service_name, session)
                     else:
                         print("No load balancer for " + service_name)
     except Exception as e:
