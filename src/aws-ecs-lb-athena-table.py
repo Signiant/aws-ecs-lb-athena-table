@@ -18,6 +18,12 @@ def main(argv):
     session = boto3.session.Session(region_name=args.region)
     ecs = session.client("ecs")
 
+    # Create an athena database if it does not exist
+    # This name is hard-coded to elb_logs
+    athena_database = 'elb_logs'
+    if aws_athena.create_athena_database(athena_database, session):
+        print("Athena database " + athena_database + " is ready to use")
+
     try:
         # have to use a paginator to handle > 10 services
         sPaginator = ecs.get_paginator('list_services')
@@ -77,7 +83,13 @@ def main(argv):
                                 print("Access logging is already enabled on " + load_balancer)
 
                             if need_to_create_athena_table or args.force:
-                                aws_athena.create_athena_table(args.force, args.bucket, service_name, session)
+                                if aws_athena.create_athena_elb_table(args.force,
+                                                            athena_database,
+                                                            load_balancer_type,
+                                                            args.bucket,
+                                                            service_name,
+                                                            session):
+                                                                print("Successfully created Athena table for " + service_name)
                     else:
                         print("No load balancer for " + service_name)
     except Exception as e:

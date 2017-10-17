@@ -96,6 +96,7 @@ def enable_elb_access_logging(load_balancer, load_balancer_type, bucket, bucket_
     return status
 
 
+# Given a target group, find the ALB it is attached to
 def lookup_alb_arn(target_group_arn, boto_session):
     print("Looking up LB arn for target group " + target_group_arn)
     alb_client = boto_session.client("elbv2")
