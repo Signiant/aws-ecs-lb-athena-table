@@ -19,6 +19,7 @@ def get_aws_account_id(session):
 # Creates a table in Athena for a load balancer
 # Uses template files as the fields are different for ALB/ELB
 def create_athena_elb_table(force, database, elb_type, bucket, service_name, session):
+    status = True
     # s3://BUCKET/ALB PREFIX/AWSLogs/ACCOUNT NUMBER/elasticloadbalancing/us-east-1
     s3_location = 's3://' + bucket + '/' + service_name + \
         '/AWSLogs/' + \

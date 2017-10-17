@@ -84,13 +84,10 @@ def main(argv):
                                 print("Access logging is already enabled on " + load_balancer)
 
                             if need_to_create_athena_table or args.force:
-                                if aws_athena.create_athena_elb_table(args.force,
-                                                                      athena_database,
-                                                                      load_balancer_type,
-                                                                      args.bucket,
-                                                                      service_name,
-                                                                      session):
-                                                                print("Successfully created Athena table for " + service_name)
+                                if aws_athena.create_athena_elb_table(args.force, athena_database, load_balancer_type, args.bucket, service_name, session):
+                                    print("Successfully created Athena table for " + service_name)
+                                else:
+                                    print("Unable to create Athena table for " + service_name)
                     else:
                         print("No load balancer for " + service_name)
     except Exception as e:
