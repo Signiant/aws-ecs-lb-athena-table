@@ -33,10 +33,9 @@ docker run \
 
 In this example, the arguments after the image name are
 
-* -c <ECS cluster name>
-* -r <region>
-* -b <S3 bucket to place access logs in>
-* Memory threshold to take action on
+* -c `ECS cluster name`
+* -r `region`
+* -b `S3 bucket to place access logs in`
 
 NOTE:  The S3 bucket must be pre-created and [configured](http://docs.aws.amazon.com/elasticloadbalancing/latest/classic/enable-access-logs.html) to accept logs for load balancers
 
