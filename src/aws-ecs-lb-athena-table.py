@@ -8,6 +8,7 @@ import aws_athena  # Module in this project
 def main(argv):
     parser = argparse.ArgumentParser(description='Create Athena tables for each load balancer used by an ECS service')
     parser.add_argument('-c', '--cluster', help='ECS cluster to iterate services on', required=True)
+    parser.add_argument('-d', '--database', help='Athena database to create tables in', required=True)
     parser.add_argument('-r', '--region', help='AWS region containing the cluster and where Athena tables will be created', required=True)
     parser.add_argument('-b', '--bucket', help='S3 bucket that will contain the ELB access logs (service name will be appended)', required=True)
     parser.add_argument('-f', '--force', help='Force re-creation of Athena table', action='store_true')
@@ -20,7 +21,7 @@ def main(argv):
 
     # Create an athena database if it does not exist
     # This name is hard-coded to elb_logs
-    athena_database = 'elb_logs'
+    athena_database = args.database
     if aws_athena.create_athena_database(athena_database, session):
         print("Athena database " + athena_database + " is ready to use")
 

@@ -23,10 +23,9 @@ docker pull signiant/monitor-ecs-service
 
 ```bash
 docker run \
-  -e AWS_ACCESS_KEY_ID=XXXXXX \
-  -e AWS_SECRET_ACCESS_KEY=XXXXXX \
   signiant/aws-ecs-lb-athena-table \
        -c My-ECS-Cluster \
+       -d elb_logs \
        -r us-east-1 \
        -b my-s3-bucket-for-logs
 ```
@@ -34,6 +33,7 @@ docker run \
 In this example, the arguments after the image name are
 
 * -c `ECS cluster name`
+* -d `Athena database to create tables in`
 * -r `region`
 * -b `S3 bucket to place access logs in`
 
@@ -47,6 +47,7 @@ docker run \
   -e AWS_SECRET_ACCESS_KEY=XXXXXX \
   signiant/aws-ecs-lb-athena-table \
        -c My-ECS-Cluster \
+       -d elb_logs \
        -r us-east-1 \
        -b my-s3-bucket-for-logs \
        -f
