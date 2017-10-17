@@ -84,11 +84,11 @@ def main(argv):
 
                             if need_to_create_athena_table or args.force:
                                 if aws_athena.create_athena_elb_table(args.force,
-                                                            athena_database,
-                                                            load_balancer_type,
-                                                            args.bucket,
-                                                            service_name,
-                                                            session):
+                                                                      athena_database,
+                                                                      load_balancer_type,
+                                                                      args.bucket,
+                                                                      service_name,
+                                                                      session):
                                                                 print("Successfully created Athena table for " + service_name)
                     else:
                         print("No load balancer for " + service_name)

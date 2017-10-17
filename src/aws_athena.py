@@ -15,6 +15,7 @@ def get_aws_account_id(session):
 
     return account_id
 
+
 # Creates a table in Athena for a load balancer
 # Uses template files as the fields are different for ALB/ELB
 def create_athena_elb_table(force, database, elb_type, bucket, service_name, session):
@@ -26,13 +27,13 @@ def create_athena_elb_table(force, database, elb_type, bucket, service_name, ses
         session.region_name
 
     # Tables cannot have dashes
-    table_name = service_name.lower().replace('-','_')
+    table_name = service_name.lower().replace('-', '_')
 
     # Templates are slightly different for the 2 types
     if elb_type == "ALB":
-        filein = open( 'sql/alb.sql' )
+        filein = open('sql/alb.sql')
     elif elb_type == "ELB":
-        filein = open( 'sql/elb.sql' )
+        filein = open('sql/elb.sql')
 
     if force:
         # We need to remove the table first
@@ -46,8 +47,8 @@ def create_athena_elb_table(force, database, elb_type, bucket, service_name, ses
                 status = False
 
     if filein and status:
-        src = Template( filein.read() )
-        vals={ 'table_name':table_name, 's3_location':s3_location }
+        src = Template(filein.read())
+        vals = {'table_name': table_name, 's3_location': s3_location}
         create_table_query = src.safe_substitute(vals)
 
         query_id = submit_query(create_table_query, database, session)
